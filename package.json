@@ -1,0 +1,77 @@
+{
+  "name": "secure-bank-system",
+  "version": "1.0.0",
+  "description": "Banking System with Advanced Security, Real-Time Transactions, and Cloud Integration",
+  "scripts": {
+    "build:dev": "webpack --config webpack.config.cjs --mode development",
+    "build:production": "webpack --config webpack.config.cjs --mode production",
+    "start": "webpack serve --config webpack.config.cjs --mode development",
+    "backend": "nodemon --watch src/server --ignore dist --exec \"node --loader ts-node/esm --experimental-specifier-resolution=node\" src/server/index.ts",
+    "dev": "npm-run-all --parallel start backend",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write"
+  },
+  "prettier": {
+    "semi": true,
+    "singleQuote": true,
+    "trailingComma": "all",
+    "tabWidth": 4,
+    "printWidth": 100
+  },
+  "keywords": [],
+  "author": "Tiffany Zhang qianqiangoodjob193@gmail.com",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/core": "^7.26.0",
+    "@babel/eslint-parser": "^7.26.5",
+    "@babel/preset-env": "^7.26.0",
+    "@babel/preset-react": "^7.26.3",
+    "@babel/preset-typescript": "^7.26.0",
+    "@eslint/js": "^9.16.0",
+    "@types/react": "^19.0.1",
+    "@types/react-dom": "^19.0.2",
+    "@typescript-eslint/eslint-plugin": "^8.23.0",
+    "@typescript-eslint/parser": "^8.23.0",
+    "babel-eslint": "^10.1.0",
+    "babel-loader": "^9.2.1",
+    "eslint": "^9.19.0",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-import-resolver-typescript": "^3.7.0",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-prettier": "^5.2.3",
+    "eslint-plugin-react": "^7.37.4",
+    "eslint-webpack-plugin": "^4.2.0",
+    "fork-ts-checker-webpack-plugin": "^9.0.2",
+    "globals": "^15.13.0",
+    "html-webpack-plugin": "^5.6.3",
+    "nodemon": "^3.1.7",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^3.4.2",
+    "terser-webpack-plugin": "^5.3.10",
+    "ts-loader": "^9.5.1",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths-webpack-plugin": "^4.2.0",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.18.0",
+    "webpack-bundle-analyzer": "^4.10.2",
+    "webpack-dev-server": "^5.1.0"
+  },
+  "eslintConfig": {
+    "parser": "@typescript-eslint/parser",
+    "extends": [
+      "plugin:@typescript-eslint/recommended",
+      "plugin:react/recommended"
+    ]
+  },
+  "dependencies": {
+    "@reduxjs/toolkit": "^2.5.0",
+    "immer": "^10.1.1",
+    "immutable": "^5.0.3",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-redux": "^9.2.0",
+    "react-router-dom": "^6.29.0"
+  },
+  "type": "module"
+}

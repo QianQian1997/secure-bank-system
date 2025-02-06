@@ -47,6 +47,15 @@ web_modules/
 
 # TypeScript cache
 *.tsbuildinfo
+*.d.ts        
+dist/
+
+# Webpack
+webpack-stats.json
+webpack-config.log
+ 
+# Redux DevTools 
+redux-store-debug.log
 
 # Optional npm cache directory
 .npm
@@ -78,6 +87,7 @@ web_modules/
 .env.test.local
 .env.production.local
 .env.local
+.env.*.local
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -128,3 +138,13 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+package-lock.json
+.vscode/
+nodemon.json
+tsconfig.tsbuildinfo
+coverage/
+logs/
+.DS_Store
+Thumbs.db
+.idea/
