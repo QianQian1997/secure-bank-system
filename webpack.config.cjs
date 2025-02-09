@@ -53,10 +53,13 @@ module.exports = {
     proxy: [
       {
         context: ["/api"],
-        target: "http://localhost:3000",
+        target: "http://localhost:8080",
+        changeOrigin: true,
+        secure: false,
+        pathRewrite: { '^/api': "" },
       },
     ],
-    port: 8080,
+    port: 3000,
     open: true,
     hot: true,
     compress: true,
