@@ -2,6 +2,8 @@ import express, { Express } from 'express';
 import cors from 'cors';
 import { Request, Response, NextFunction } from 'express';
 import { defaultError } from '@server/types/express/express.types';
+import { ApolloServer, BaseContext } from '@apollo/server';
+import { expressMiddleware } from '@apollo/server/express4';
 
 const corsConfig = {
     origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
@@ -14,7 +16,14 @@ const initMiddleware = (app: Express): void => {
     app.use(cors(corsConfig), express.json(), express.urlencoded({ extended: true }));
 };
 
-const initGraphQl = async (app: Express): Promise<void> => {};
+const initGraphQl = async (app: Express): Promise<ApolloServer<BaseContext>> => {
+    const server = new ApolloServer({
+        // typeDefs,
+        // resolvers,
+    });
+    await server.start();
+    return server;
+};
 
 const initGlobalErrorHandler = (app: Express): void => {
     app.use((err: defaultError, req: Request, res: Response, next: NextFunction): void => {
@@ -36,7 +45,8 @@ const startServer = async (): Promise<void> => {
     const app: Express = express();
     const PORT: number = 8080;
     initMiddleware(app);
-    await initGraphQl(app);
+    const server = await initGraphQl(app);
+    app.use('/graphql', expressMiddleware(server));
     initGlobalErrorHandler(app);
     app.listen(PORT, () => {
         console.log(`Server running on http://localhost:${PORT}`);
