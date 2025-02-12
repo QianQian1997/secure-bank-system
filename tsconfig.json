@@ -26,7 +26,11 @@
     "skipLibCheck": true /* Skip type checking all .d.ts files. */,
     "moduleResolution": "Bundler",
     "allowJs": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "sourceMap": true,
+    "lib": [
+      "ESNext"
+    ]
   },
   "include": [
     "src/**/*"

@@ -1,0 +1,15 @@
+export const userTypeDefs = `#graphql
+  type User {
+    id: Int!
+    email: String!
+  }
+  type Query {
+    getSpecificUser(id: Int!): User
+    getAllUsers: [User!]!
+  }
+  type Mutation {
+    createUser(email: String!): User!
+  }
+`
+
+
