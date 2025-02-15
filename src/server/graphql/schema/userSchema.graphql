@@ -2,6 +2,9 @@ export const authTypeDefs = `#graphql
   type User {
     id: Int!
     email: String!
+    passwordHash: String!
+    createAt: DateTime!
+    updatedAt: DateTime!
   }
   type authAPIResponse {
     user: User!
@@ -10,8 +13,10 @@ export const authTypeDefs = `#graphql
   type Query {
     getUserByID(id: Int!): User
     getAllUsers: [User!]!
+    getUserByEmail(email: String!): User
   }
   type Mutation {
+    createUser(email:String!, hashedPassword: String!): User
     signup(email: String!, password: String!): authAPIResponse!
     login(email: String!, password: String!): authAPIResponse!
   }
