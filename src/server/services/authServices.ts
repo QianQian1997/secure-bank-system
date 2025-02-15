@@ -1,12 +1,20 @@
 import prisma from '@server/config/prisma';
 import { User } from '@server/types/config/user.types';
-export const createUser = async (email: string, hashedPassword: string): Promise<User> => {
+import { graphqlErrorHandler } from '@server/utils/error';
+export const createUser = async (email: string, hashedPassword: string): Promise<User | null> => {
     try {
         const user = await prisma.user.create({ data: { email, passwordHash: hashedPassword } });
         return user;
     } catch (err: any) {
         console.error('error in connecting prisma database: ', err);
-        throw new Error(`fail to create user in database ${err.message || 'Unknown Error'}`);
+        graphqlErrorHandler(
+            `fail to create user with email: ${email} in database`,
+            'DATABASE_ERROR',
+            '500',
+            err.message,
+            ['createUser'],
+        );
+        return null;
     }
 };
 export const getUserByID = async (userID: number): Promise<User | null> => {
@@ -20,9 +28,14 @@ export const getUserByID = async (userID: number): Promise<User | null> => {
         return user;
     } catch (err: any) {
         console.error('error in getting user by id from database:', err);
-        throw new Error(
-            `fail to get user info for userID${userID} ${err.message || 'Unknown Error'}`,
+        graphqlErrorHandler(
+            `fail to get user with id: ${userID} in database`,
+            'DATABASE_ERROR',
+            '500',
+            err.message,
+            ['getUserByID'],
         );
+        return null;
     }
 };
 export const getUserByEmail = async (email: string): Promise<User | null> => {
@@ -35,9 +48,14 @@ export const getUserByEmail = async (email: string): Promise<User | null> => {
         return user;
     } catch (err: any) {
         console.error('error in getting user by email from database', err);
-        throw new Error(
-            `fail to get user info with email ${email} ${err.message || 'unknown Error'}`,
+        graphqlErrorHandler(
+            `fail to get user with email: ${email} in database`,
+            'DATABASE_ERROR',
+            '500',
+            err.message,
+            ['getUserByEmail'],
         );
+        return null;
     }
 };
 export const getAllUsers = async (): Promise<User[]> => {
@@ -47,6 +65,13 @@ export const getAllUsers = async (): Promise<User[]> => {
         return users;
     } catch (err: any) {
         console.error('error in getting all user info from database:', err);
-        throw new Error(`fail to get all userInfo ${err.message || 'Unknown Error'}`);
+        graphqlErrorHandler(
+            'fail to get all users from database',
+            'DATABASE_ERROR',
+            '500',
+            err.message,
+            ['getUserByEmail'],
+        );
+        return [];
     }
 };

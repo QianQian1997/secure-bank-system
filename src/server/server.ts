@@ -27,6 +27,9 @@ const initGraphQl = async (app: Express): Promise<ApolloServer<BaseContext>> => 
 
 const initGlobalErrorHandler = (app: Express): void => {
     app.use((err: defaultError, req: Request, res: Response, next: NextFunction): void => {
+        if (req.path === '/graphql') {
+            return next();
+        }
         const defaultError: defaultError = {
             log: 'there is an error in your middleware',
             status: 500,
