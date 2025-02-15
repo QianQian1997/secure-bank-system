@@ -1,14 +1,19 @@
-export const userTypeDefs = `#graphql
+export const authTypeDefs = `#graphql
   type User {
     id: Int!
     email: String!
   }
+  type authAPIResponse {
+    user: User!
+    token: String!
+  }
   type Query {
-    getSpecificUser(id: Int!): User
+    getUserByID(id: Int!): User
     getAllUsers: [User!]!
   }
   type Mutation {
-    createUser(email: String!): User!
+    signup(email: String!, password: String!): authAPIResponse!
+    login(email: String!, password: String!): authAPIResponse!
   }
 `
 
