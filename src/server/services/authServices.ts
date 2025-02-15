@@ -1,15 +1,15 @@
 import prisma from '@server/config/prisma';
 import { User } from '@server/types/config/user.types';
-export const createUser = async (email: string): Promise<User> => {
+export const createUser = async (email: string, hashedPassword: string): Promise<User> => {
     try {
-        const user = await prisma.user.create({ data: { email } });
+        const user = await prisma.user.create({ data: { email, passwordHash: hashedPassword } });
         return user;
     } catch (err: any) {
         console.error('error in connecting prisma database: ', err);
         throw new Error(`fail to create user in database ${err.message || 'Unknown Error'}`);
     }
 };
-export const getSpecificUser = async (userID: number): Promise<User | null> => {
+export const getUserByID = async (userID: number): Promise<User | null> => {
     try {
         const user = await prisma.user.findUnique({
             where: {
@@ -19,9 +19,24 @@ export const getSpecificUser = async (userID: number): Promise<User | null> => {
         //user can be null if not found
         return user;
     } catch (err: any) {
-        console.error('error in getting specific user info from database:', err);
+        console.error('error in getting user by id from database:', err);
         throw new Error(
             `fail to get user info for userID${userID} ${err.message || 'Unknown Error'}`,
+        );
+    }
+};
+export const getUserByEmail = async (email: string): Promise<User | null> => {
+    try {
+        const user = await prisma.user.findUnique({
+            where: {
+                email,
+            },
+        });
+        return user;
+    } catch (err: any) {
+        console.error('error in getting user by email from database', err);
+        throw new Error(
+            `fail to get user info with email ${email} ${err.message || 'unknown Error'}`,
         );
     }
 };
