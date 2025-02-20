@@ -58,9 +58,8 @@ export const userResolvers = {
                         ['signup'],
                     );
                 } else {
-                    let jwtToken;
                     try {
-                        jwtToken = generateJwtToken(newUser.id);
+                        const jwtToken = generateJwtToken(newUser.id);
                         return { user: newUser, token: jwtToken };
                     } catch (e: any) {
                         throw new Error(`jwt error: ${e.message}`);
