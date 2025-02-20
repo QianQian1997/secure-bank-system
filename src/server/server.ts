@@ -49,7 +49,16 @@ const initGlobalErrorHandler = (app: Express): void => {
     });
 };
 
+// 封装成 Promise 的情形：
+// 当你遇到 回调函数（比如 fs.readFile, server.close）时，它们不会返回 Promise，需要手动封装成 Promise 来使用 await。
+// 当你需要 统一的错误处理 或者 简化异步逻辑 时。
+// 当你希望多个异步操作 并行执行 并等待它们全部完成时。
+// 不需要封装成 Promise 的情形：
+// 如果你使用的 API 本身已经返回 Promise（如 fetch、setTimeout 等）。
+// 如果是 同步操作，它们本身不会涉及到异步行为。
+
 const shutDownServer = (server: Server): Promise<void> => {
+    // 通过封装回调为 Promise 以便在异步函数中使用 await 处理 shutdown 操作
     return new Promise((resolve, reject) => {
         server.close((err) => {
             if (err) {
@@ -67,6 +76,7 @@ const cleanUp = async () => {
             await shutDownServer(server);
         }
         console.log('closed http');
+        //这个数据库关闭必须在服务器关闭之后执行
         await prisma.$disconnect();
         console.log('closed prisma database');
         process.exit(0);
@@ -84,8 +94,30 @@ const startServer = async (): Promise<void> => {
     const apolloServer = await initGraphQl(app);
     app.use('/graphql', expressMiddleware(apolloServer));
     initGlobalErrorHandler(app);
+    //这里全局变量的server被赋值 不再是undefined
     server = app.listen(PORT, () => {
         console.log(`Server running on http://localhost:${PORT}`);
+    });
+};
+
+// process.on('uncaughtException', callback) 这一行代码是同步执行的，注册了监听器。但当 'uncaughtException' 事件发生时，回调函数才会被异步触发。
+// 在回调函数内部，如果你使用了 async/await，那么这个回调函数就能处理异步操作（比如清理工作），但回调的执行本身是异步的，独立于事件注册之外。
+const initProcessEvents = () => {
+    //process这些事件监听要写在try catch的外面
+    // process.on() 事件监听器 是事件驱动的，它会在 事件触发时 执行回调。因此，事件监听器的回调是异步执行的，而且通常是在主线程的事件循环（event loop）中触发。
+    process.on('SIGINT', cleanUp);
+    //监听 SIGINT 信号，当用户按下 Ctrl + C 时触发。
+    //场景：通常用于让服务器在手动终止时进行清理（比如关闭数据库连接、保存日志等）。
+    process.on('SIGTERM', cleanUp);
+    // 监听 SIGTERM 信号，当进程被要求终止时触发。
+    // 场景：一般由操作系统或容器编排工具（如 Docker、Kubernetes）发送，表示需要关闭进程。 kill <process_id>
+    // 由于回调是异步执行的，事件触发时的错误不会被 try/catch 捕获，因此需要通过 uncaughtException 和 unhandledRejection 来进行捕获和处理
+    process.on('uncaughtException', async (err) => {
+        console.error('uncaughtException', err); //致命错误 throw 但未 try-catch 需要清理并推出
+        await cleanUp();
+    });
+    process.on('unhandledRejection', (reason, promise) => {
+        console.log('unhandledRejection at', promise, 'reason', reason); //Promise.reject() 没有 catch 程序可以继续运行
     });
 };
 
@@ -97,18 +129,5 @@ try {
     console.log(error, 'error when init startServer');
     process.exit(1);
 }
-//process这些事件监听要写在try catch的外面
-// process.on() 事件监听器 是事件驱动的，它会在 事件触发时 执行回调。因此，事件监听器的回调是异步执行的，而且通常是在主线程的事件循环（event loop）中触发。
-process.on('SIGINT', cleanUp);
-//监听 SIGINT 信号，当用户按下 Ctrl + C 时触发。
-//场景：通常用于让服务器在手动终止时进行清理（比如关闭数据库连接、保存日志等）。
-process.on('SIGTERM', cleanUp);
-// 监听 SIGTERM 信号，当进程被要求终止时触发。
-// 场景：一般由操作系统或容器编排工具（如 Docker、Kubernetes）发送，表示需要关闭进程。 kill <process_id>
-process.on('uncaughtException', async (err) => {
-    console.error('uncaughtException', err); //致命错误 throw 但未 try-catch 需要清理并推出
-    await cleanUp();
-});
-process.on('unhandledRejection', (reason, promise) => {
-    console.log('unhandledRejection at', promise, 'reason', reason); //Promise.reject() 没有 catch 程序可以继续运行
-});
+//要startServer后面才可以call这个cleanUp因为这时候server才是被赋值了的状态
+initProcessEvents();
