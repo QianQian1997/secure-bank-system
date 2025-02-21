@@ -14,12 +14,71 @@ datasource db {
 }
 
 model User {
-  id Int @id @default(autoincrement()) //@id -> setting id to be primary key
+  id String @id @default(uuid()) //@id -> setting id to be primary key
   email String @unique
+  phoneNumber String?
   passwordHash String
+  isAdmin Boolean
   createAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  transactions Transaction[]
+  currentBalance Decimal @default(0)
   // This field is automatically updated with the current timestamp whenever the record is updated.
   @@map("users")
 }
+//要记得currentBalance不能小于0 但是prisma没有CHECK功能 要在代码逻辑里check！
+model Transaction {
+  id String @id @default(uuid())
+  gateway GatewayTypes  
+  method PaymentMethodTypes 
+  status TransactionStatus 
+  types TransactionTypes
+  amount Int
+  currency String @default("USD") //prisma里字符串默认值要用双引号 单引号会报错
+  description String?
+  metadata Json?
+  creatorId String
+  creator User @relation(fields: [creatorId], references: [id])
+  //如果要用stripe的授权与延迟付款要加
+  // authorization_id  VARCHAR, /* gateway specific ID */
+  // captured          TIMESTAMP,
+  // capture_id        VARCHAR, /* gateway specific ID */
+  //如果要实现refund功能
+  // refunded          TIMESTAMP,
+  // refund_id         VARCHAR 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@map("transactions")
+}
 
+// metadata 字段：
+// 在许多支付系统中，metadata 用来存储与交易相关的额外信息，这些信息并不是直接影响交易的核心数据，而是可能用于后续的处理或记录。它可以是任何形式的数据，通常是以键值对的形式存储。
+
+// 典型用途：
+
+// 订单详情：存储一些非标准的订单信息，比如商品信息、顾客特定的要求等。
+// 调试信息：在调试或测试阶段，可以用来存储一些额外的日志或调试数据。
+// 第三方集成数据：如果你的系统与其他系统进行集成，可能会通过 metadata 存储与这些集成相关的信息。
+
+enum GatewayTypes {
+    STRIPE 
+    PAYPAL 
+}
+//之后可以选择把applepay加进来
+enum PaymentMethodTypes {
+    CARD 
+    PAYPAL
+    // APPLEPAY
+}
+//如果之后要加loan功能在这里加
+enum TransactionTypes {
+    DEPOSIT 
+    WITHDRAWAL 
+    TRANSFER 
+}
+//如果之后要加refund功能在这里加
+enum TransactionStatus {
+    PENDING 
+    FAILED 
+    COMPLETED 
+}
