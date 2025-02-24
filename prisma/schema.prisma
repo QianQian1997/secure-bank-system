@@ -29,16 +29,16 @@ model User {
 //要记得currentBalance不能小于0 但是prisma没有CHECK功能 要在代码逻辑里check！
 model Transaction {
   id String @id @default(uuid())
-  gateway GatewayTypes  
-  method PaymentMethodTypes 
+  gateway GatewayTypes @default(STRIPE)
+  method PaymentMethodTypes @default(CARD)
   status TransactionStatus 
   types TransactionTypes
   amount Int
   currency String @default("USD") //prisma里字符串默认值要用双引号 单引号会报错
   description String?
   metadata Json?
+  creator User @relation(fields: [creatorId], references: [id], onDelete: Cascade)
   creatorId String
-  creator User @relation(fields: [creatorId], references: [id])
   //如果要用stripe的授权与延迟付款要加
   // authorization_id  VARCHAR, /* gateway specific ID */
   // captured          TIMESTAMP,
@@ -49,6 +49,11 @@ model Transaction {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@map("transactions")
+  @@index([gateway]) //query by gateway
+  @@index([method]) //query by method
+  @@index([status]) //query by transaction status
+  @@index([types]) //query by transaction types
+  @@index([creatorId]) //query by transaction creator id
 }
 
 // metadata 字段：

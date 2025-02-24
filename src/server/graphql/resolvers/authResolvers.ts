@@ -1,5 +1,4 @@
 import {
-    getUserByID,
     getAllUsers,
     createUser,
     getUserByEmail,
@@ -10,20 +9,6 @@ import { graphqlErrorHandler } from '@server/utils/error';
 const saltRounds = 10;
 export const userResolvers = {
     Query: {
-        getUserByID: async (_: any, { id }: { id: number }) => {
-            const user = await getUserByID(id);
-            if (!user) {
-                graphqlErrorHandler(
-                    `this user with id: ${id} cannot be found in the database`,
-                    'USER_NOT_FOUND',
-                    '404',
-                    undefined,
-                    ['getUserByID'],
-                );
-                //404找不到指定用户
-            }
-            return user;
-        },
         getAllUsers: async (_: any, __: any) => {
             return await getAllUsers();
         },
