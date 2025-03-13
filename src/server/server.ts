@@ -5,7 +5,8 @@ import { defaultError } from '@server/types/express/express.types';
 import { ApolloServer, BaseContext } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
 import { Server } from 'http';
-
+import { resolvers } from './graphql/resolvers';
+import { typeDefs } from './graphql/schema';
 import prisma from './config/prisma';
 //这里一定要写上| undefined  这样写 TypeScript 就知道：server 可能不存在，要检查后再用
 let server: Server | undefined;
@@ -23,8 +24,8 @@ const initMiddleware = (app: Express): void => {
 
 const initGraphQl = async (app: Express): Promise<ApolloServer<BaseContext>> => {
     const server = new ApolloServer({
-        // typeDefs,
-        // resolvers,
+        typeDefs,
+        resolvers,
     });
     await server.start();
     return server;

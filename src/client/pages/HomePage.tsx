@@ -1,7 +1,11 @@
 import React from 'react';
 
 const HomePage = () => {
-    return <div></div>;
+    return (
+        <div>
+            <p>Security Banking System</p>
+        </div>
+    );
 };
 
 export default HomePage;

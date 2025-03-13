@@ -1,11 +1,23 @@
 import prisma from '@server/config/prisma';
-import { User } from '@server/types/config/user.types';
+import { User, LoginUser } from '@server/types/config/user.types';
 import { graphqlErrorHandler } from '@server/utils/error';
-export const createUser = async (email: string, hashedPassword: string): Promise<User | null> => {
+export const createUser = async (
+    email: string,
+    hashedPassword: string,
+    isAdmin: boolean,
+    phoneNumber?: string,
+): Promise<User | null> => {
     try {
         const user = await prisma.user.create({
-            data: { email, passwordHash: hashedPassword },
-            include: { transactions: true },
+            data: { email, passwordHash: hashedPassword, isAdmin, phoneNumber: phoneNumber || '' },
+            select: {
+                id: true,
+                email: true,
+                isAdmin: true,
+                createAt: true,
+                updatedAt: true,
+                currentBalance: true,
+            },
         });
         return user;
     } catch (err: any) {
@@ -21,13 +33,22 @@ export const createUser = async (email: string, hashedPassword: string): Promise
     }
 };
 
-export const getUserByEmail = async (email: string): Promise<User | null> => {
+export const getUserByEmail = async (email: string): Promise<LoginUser | null> => {
     try {
         const user = await prisma.user.findUnique({
             where: {
                 email,
             },
-            include: { transactions: true },
+            select: {
+                email: true,
+                id: true,
+                isAdmin: true,
+                passwordHash: true,
+                createAt: true,
+                updatedAt: true,
+            },
+            //等真正getUser Transaction By email的时候再include
+            // include: { transactions: true },
         });
         return user;
     } catch (err: any) {
