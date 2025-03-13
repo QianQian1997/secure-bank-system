@@ -29,8 +29,12 @@
     "resolveJsonModule": true,
     "sourceMap": true,
     "lib": [
-      "ESNext"
+      "ESNext",
+      "dom"
     ]
+    // Adding "dom" to the "lib" array in tsconfig.json allows TypeScript 
+    // to recognize DOM-related objects such as `document` and `window`.
+    // This is required when writing code that interacts with the browser DOM.
   },
   "include": [
     "src/**/*"

@@ -1,8 +1,4 @@
-import {
-    getAllUsers,
-    createUser,
-    getUserByEmail,
-} from '@server/services/authServices';
+import { getAllUsers, createUser, getUserByEmail } from '@server/services/authServices';
 import { generateJwtToken } from '@server/utils/authUtils';
 import bcrypt from 'bcrypt';
 import { graphqlErrorHandler } from '@server/utils/error';
@@ -14,7 +10,14 @@ export const userResolvers = {
         },
     },
     Mutation: {
-        signup: async (_: any, { email, password }: { email: string; password: string }) => {
+        signup: async (
+            _: any,
+            {
+                email,
+                password,
+                phoneNumber,
+            }: { email: string; password: string; phoneNumber?: string },
+        ) => {
             const existingUser = await getUserByEmail(email);
             if (existingUser !== null) {
                 graphqlErrorHandler(
@@ -33,7 +36,8 @@ export const userResolvers = {
                 } catch (e: any) {
                     throw new Error(`bcrypt error: ${e.message}`);
                 }
-                const newUser = await createUser(email, hashedPassword);
+                const isAdmin = email.endsWith('@admin.com'); //boolean
+                const newUser = await createUser(email, hashedPassword, isAdmin, phoneNumber || '');
                 if (newUser === null) {
                     return graphqlErrorHandler(
                         `Failed to create user with email: ${email}`,
@@ -91,12 +95,13 @@ export const userResolvers = {
                     ['getUserByEmail'],
                 );
             } else {
-                const { passwordHash, id } = existingUser;
+                const { email, passwordHash, id, isAdmin, createAt, updatedAt } = existingUser;
                 const isPwdMatch = await bcrypt.compare(password, passwordHash);
                 if (isPwdMatch) {
+                    const userData = { email, isAdmin, createAt, updatedAt };
                     //login的时候也是生成新的jwt发送给前端
                     const jwtToken = generateJwtToken(id);
-                    return { user: existingUser, token: jwtToken };
+                    return { user: userData, token: jwtToken };
                 } else {
                     //password entered does not match the record
                     graphqlErrorHandler(

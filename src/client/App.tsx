@@ -7,9 +7,7 @@ const App: React.FC = () => {
             <div>
                 <h1>Welcome to your banking system</h1>
                 <Routes>
-                    <Route path="/" element={<HomePage />}>
-                        Home
-                    </Route>
+                    <Route path="/" element={<HomePage />}></Route>
                     <Route path="/login"></Route>
                     <Route path="/signup"></Route>
                 </Routes>

@@ -82,6 +82,7 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "graphql": "^16.10.0",
+    "graphql-tag": "^2.12.6",
     "http": "^0.0.1-security",
     "immer": "^10.1.1",
     "immutable": "^5.0.3",
