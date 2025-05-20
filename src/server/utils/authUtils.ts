@@ -6,8 +6,8 @@ const privateKey = process.env.JWT_SECRET as string; //have to asset privateKey 
 if (!privateKey) {
     throw new Error('jwt_token is missing');
 }
-export const generateJwtToken = (userID: string): string => {
-    const token = jwt.sign({ userID }, privateKey, { expiresIn: '15m' });
+export const generateJwtToken = (userID: string, role: string): string => {
+    const token = jwt.sign({ userID, role }, privateKey, { expiresIn: '15m' });
     return token;
 };
 export const verifyJwtToken = (token: string): JwtPayload | null => {

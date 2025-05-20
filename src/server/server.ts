@@ -8,6 +8,8 @@ import { Server } from 'http';
 import { resolvers } from './graphql/resolvers';
 import { typeDefs } from './graphql/schema';
 import prisma from './config/prisma';
+import { rateLimit } from 'express-rate-limit';
+import { context, GraphQLContext } from '@server/graphql/context/jwtContext';
 //这里一定要写上| undefined  这样写 TypeScript 就知道：server 可能不存在，要检查后再用
 let server: Server | undefined;
 
@@ -18,18 +20,33 @@ const corsConfig = {
     allowedHeaders: ['Content-Type', 'Authorization'],
 };
 
+const limiter = rateLimit({
+    windowMs: 10 * 60 * 1000, //十分钟最多一百次？
+    limit: 100,
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+});
+
 const initMiddleware = (app: Express): void => {
-    app.use(cors(corsConfig), express.json(), express.urlencoded({ extended: true }));
+    app.use(
+        cors(corsConfig),
+        //请求体大小限制（body size limit）限制客户端请求体（payload）大小，防止超大请求导致服务器负载过高或内存爆炸。
+        express.json({ limit: '10mb' }),
+        // 限制 JSON 请求体最大为 10MB
+        express.urlencoded({ extended: true, limit: '10mb' }),
+        // 限制 urlencoded 请求体最大为 10MB
+    );
 };
 
-const initGraphQl = async (app: Express): Promise<ApolloServer<BaseContext>> => {
-    const server = new ApolloServer({
-        typeDefs,
-        resolvers,
+const initGraphQl = async (): Promise<ApolloServer<GraphQLContext>> => {
+    const server = new ApolloServer<GraphQLContext>({
+      typeDefs,
+      resolvers,
+      // **这里不传context**
     });
     await server.start();
     return server;
-};
+  };
 
 const initGlobalErrorHandler = (app: Express): void => {
     app.use((err: defaultError, req: Request, res: Response, next: NextFunction): void => {
@@ -92,8 +109,8 @@ const startServer = async (): Promise<void> => {
     const app: Express = express();
     const PORT: number = 8080;
     initMiddleware(app);
-    const apolloServer = await initGraphQl(app);
-    app.use('/graphql', expressMiddleware(apolloServer));
+    const apolloServer = await initGraphQl();
+    app.use('/graphql', limiter, expressMiddleware(apolloServer, { context }));
     initGlobalErrorHandler(app);
     //这里全局变量的server被赋值 不再是undefined
     server = app.listen(PORT, () => {
