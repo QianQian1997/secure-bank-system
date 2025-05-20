@@ -53,7 +53,6 @@ model Transaction {
   @@index([method]) //query by method
   @@index([status]) //query by transaction status
   @@index([types]) //query by transaction types
-  @@index([creatorId]) //query by transaction creator id
 }
 
 // metadata 字段：

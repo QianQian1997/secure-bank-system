@@ -2,10 +2,21 @@ import { getAllUsers, createUser, getUserByEmail } from '@server/services/authSe
 import { generateJwtToken } from '@server/utils/authUtils';
 import bcrypt from 'bcrypt';
 import { graphqlErrorHandler } from '@server/utils/error';
+import { GraphQLContext } from '@server/graphql/context/jwtContext';
 const saltRounds = 10;
 export const userResolvers = {
     Query: {
-        getAllUsers: async (_: any, __: any) => {
+        getAllUsers: async (_: any, __: any, context: GraphQLContext) => {
+            //用context来role base control 只有admin才可以 不然报错
+            if (context.user?.role !== 'admin') {
+                return graphqlErrorHandler(
+                    'This user does not have admin permission',
+                    'INSUFFICIENT_ROLE',
+                    '403',
+                    undefined,
+                    ['getAllUsers'],
+                );
+            }
             return await getAllUsers();
         },
     },
@@ -48,7 +59,8 @@ export const userResolvers = {
                     );
                 } else {
                     try {
-                        const jwtToken = generateJwtToken(newUser.id);
+                        const role = newUser.isAdmin ? 'admin' : 'user';
+                        const jwtToken = generateJwtToken(newUser.id, role);
                         return { user: newUser, token: jwtToken };
                     } catch (e: any) {
                         throw new Error(`jwt error: ${e.message}`);
@@ -87,7 +99,7 @@ export const userResolvers = {
             const existingUser = await getUserByEmail(email);
             //entered email has not been signed up
             if (existingUser === null) {
-                graphqlErrorHandler(
+                return graphqlErrorHandler(
                     `this user with email: ${email} does not exists in database`,
                     'USER_NOT_FOUND',
                     '404',
@@ -100,7 +112,8 @@ export const userResolvers = {
                 if (isPwdMatch) {
                     const userData = { email, isAdmin, createAt, updatedAt };
                     //login的时候也是生成新的jwt发送给前端
-                    const jwtToken = generateJwtToken(id);
+                    const role = isAdmin ? 'admin' : 'user';
+                    const jwtToken = generateJwtToken(id, role);
                     return { user: userData, token: jwtToken };
                 } else {
                     //password entered does not match the record
